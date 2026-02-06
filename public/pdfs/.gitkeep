@@ -1,0 +1,10 @@
+# This folder contains blank TREC PDF forms for use with the PDF filler.
+# Download the official forms from https://www.trec.texas.gov/forms
+#
+# Expected files:
+# - trec-20-17.pdf (One to Four Family Residential Contract - Resale)
+# - trec-40-9.pdf (Third Party Financing Addendum)
+# - trec-36-9.pdf (HOA Addendum)
+# - trec-39-10.pdf (Amendment to Contract)
+# - trec-38-6.pdf (Notice of Buyer Termination)
+# - trec-op-h.pdf (Seller's Disclosure Notice)
