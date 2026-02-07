@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTransaction } from '../hooks/useTransaction';
 import { Modal, Button, Input, Toggle } from './common';
+import { downloadExport, importData, canUseWebShare, shareData } from '../utils/exportImport';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -9,8 +10,58 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { transaction, updateTransaction, resetTransaction } = useTransaction();
+  const [showShareButton, setShowShareButton] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setShowShareButton(canUseWebShare());
+  }, []);
 
   if (!transaction) return null;
+
+  const handleExport = () => {
+    downloadExport(false);
+  };
+
+  const handleExportAndOpenDrive = () => {
+    downloadExport(true);
+  };
+
+  const handleShare = async () => {
+    try {
+      await shareData();
+    } catch (error) {
+      console.error('Share failed:', error);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImportError(null);
+    setImportSuccess(false);
+
+    try {
+      await importData(file);
+      setImportSuccess(true);
+      // Reload to apply imported data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'Import failed');
+    }
+
+    // Reset file input
+    event.target.value = '';
+  };
 
   const handleReset = () => {
     if (
@@ -91,6 +142,48 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               label="New construction (vs. resale)"
             />
           </div>
+        </div>
+
+        {/* Data Backup */}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Data Backup</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Export your data to transfer to another device.
+          </p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Button variant="secondary" onClick={handleExport}>
+              Export Data
+            </Button>
+            <Button variant="secondary" onClick={handleExportAndOpenDrive}>
+              Export &amp; Open Drive
+            </Button>
+            {showShareButton && (
+              <Button variant="secondary" onClick={handleShare}>
+                Share
+              </Button>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Import a previously exported backup:
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <Button variant="secondary" onClick={handleImportClick}>
+            Import Data
+          </Button>
+          {importError && (
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2">{importError}</p>
+          )}
+          {importSuccess && (
+            <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+              Import successful! Reloading...
+            </p>
+          )}
         </div>
 
         {/* Danger Zone */}
