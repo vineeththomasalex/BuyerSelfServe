@@ -21,98 +21,39 @@ export function TaskList({
   onOpenPdf,
   getIncompleteDependencies,
 }: TaskListProps) {
-  const [showCompleted, setShowCompleted] = useState(false);
   const [showNotApplicable, setShowNotApplicable] = useState(false);
 
-  // Group tasks by status
+  // Separate enabled and disabled tasks, keep original order
   const enabledTasks = tasks.filter((t) => t.isEnabled);
   const disabledTasks = tasks.filter((t) => !t.isEnabled);
 
-  const todoTasks = enabledTasks.filter((t) => !t.completed && !t.skipped);
-  const skippedTasks = enabledTasks.filter((t) => t.skipped && !t.completed);
-  const completedTasks = enabledTasks.filter((t) => t.completed);
+  const completedCount = enabledTasks.filter((t) => t.completed).length;
+  const totalEnabled = enabledTasks.length;
 
   return (
     <div className="space-y-6">
-      {/* To Do */}
-      {todoTasks.length > 0 && (
-        <div>
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-            To Do ({todoTasks.length})
-          </h3>
-          <div className="space-y-3">
-            {todoTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onToggleComplete={onToggleComplete}
-                onSkip={onSkip}
-                onUnskip={onUnskip}
-                onViewDetails={onViewDetails}
-                onOpenPdf={onOpenPdf}
-                incompleteDependencies={getIncompleteDependencies(task.id)}
-              />
-            ))}
-          </div>
+      {/* Progress summary */}
+      {enabledTasks.length > 0 && (
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          {completedCount} of {totalEnabled} tasks completed
         </div>
       )}
 
-      {/* Skipped */}
-      {skippedTasks.length > 0 && (
-        <div>
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-            Skipped for Later ({skippedTasks.length})
-          </h3>
-          <div className="space-y-3">
-            {skippedTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onToggleComplete={onToggleComplete}
-                onSkip={onSkip}
-                onUnskip={onUnskip}
-                onViewDetails={onViewDetails}
-                onOpenPdf={onOpenPdf}
-                incompleteDependencies={getIncompleteDependencies(task.id)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Completed - Collapsible */}
-      {completedTasks.length > 0 && (
-        <div>
-          <button
-            onClick={() => setShowCompleted(!showCompleted)}
-            className="flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 hover:text-gray-700 dark:hover:text-gray-300"
-          >
-            <svg
-              className={`w-4 h-4 transition-transform ${showCompleted ? 'rotate-90' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            Completed ({completedTasks.length})
-          </button>
-          {showCompleted && (
-            <div className="space-y-3">
-              {completedTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onToggleComplete={onToggleComplete}
-                  onSkip={onSkip}
-                  onUnskip={onUnskip}
-                  onViewDetails={onViewDetails}
-                  onOpenPdf={onOpenPdf}
-                  incompleteDependencies={[]}
-                />
-              ))}
-            </div>
-          )}
+      {/* All enabled tasks in original order */}
+      {enabledTasks.length > 0 && (
+        <div className="space-y-3">
+          {enabledTasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              onToggleComplete={onToggleComplete}
+              onSkip={onSkip}
+              onUnskip={onUnskip}
+              onViewDetails={onViewDetails}
+              onOpenPdf={onOpenPdf}
+              incompleteDependencies={getIncompleteDependencies(task.id)}
+            />
+          ))}
         </div>
       )}
 
@@ -157,8 +98,8 @@ export function TaskList({
         </div>
       )}
 
-      {/* Empty state */}
-      {todoTasks.length === 0 && skippedTasks.length === 0 && completedTasks.length > 0 && (
+      {/* Empty state - all complete */}
+      {enabledTasks.length > 0 && completedCount === totalEnabled && (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <svg className="w-12 h-12 mx-auto mb-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

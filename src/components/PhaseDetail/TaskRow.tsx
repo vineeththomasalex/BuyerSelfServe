@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Task } from '../../types';
 import { useTransaction } from '../../hooks/useTransaction';
 import { ConditionalBadge } from '../common';
@@ -10,6 +10,7 @@ interface TaskRowProps {
 }
 
 export function TaskRow({ task, onTaskClick }: TaskRowProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const { updateTask, skipTask, unskipTask, getIncompleteDependencies, transaction } = useTransaction();
   const incompleteDeps = getIncompleteDependencies(task.id);
 
@@ -52,6 +53,40 @@ export function TaskRow({ task, onTaskClick }: TaskRowProps) {
           )}
         </div>
         <span className="text-xs text-gray-400">Disabled</span>
+      </div>
+    );
+  }
+
+  // Collapsed view for completed tasks
+  if (task.completed && !isExpanded) {
+    return (
+      <div className="flex items-center gap-4 px-4 py-3 bg-green-50/50 border-b border-gray-100">
+        <div className="flex-shrink-0">
+          <button
+            onClick={handleToggleComplete}
+            className="w-5 h-5 border-2 rounded flex items-center justify-center bg-green-600 border-green-600 text-white"
+          >
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-gray-500 line-through">{task.title}</p>
+        </div>
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="p-1 text-gray-400 hover:text-gray-600"
+          aria-label="Expand"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
     );
   }
@@ -179,7 +214,18 @@ export function TaskRow({ task, onTaskClick }: TaskRowProps) {
       {/* Status / Actions */}
       <div className="flex-shrink-0 flex items-center gap-2">
         {task.completed ? (
-          <span className="text-xs text-green-600 font-medium">Done</span>
+          <>
+            <span className="text-xs text-green-600 font-medium">Done</span>
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
+              className="p-1 text-gray-400 hover:text-gray-600"
+              aria-label="Collapse"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </>
         ) : (
           <button
             onClick={handleSkip}

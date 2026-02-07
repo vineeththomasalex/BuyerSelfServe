@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Task } from '../../types';
 import { TaskTypeBadge } from './TaskTypeBadge';
 import { ConditionalBadge } from '../common';
@@ -22,8 +22,38 @@ export function TaskCard({
   onOpenPdf,
   incompleteDependencies = [],
 }: TaskCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const hasDependencies = incompleteDependencies.length > 0;
   const isSkipped = task.skipped && !task.completed;
+  const isCollapsed = task.completed && !isExpanded;
+
+  // Collapsed view for completed tasks
+  if (isCollapsed) {
+    return (
+      <div
+        className="border rounded-lg px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 flex items-center gap-3"
+      >
+        <input
+          type="checkbox"
+          checked={task.completed}
+          onChange={(e) => onToggleComplete(task.id, e.target.checked)}
+          className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer bg-white dark:bg-gray-800"
+        />
+        <span className="flex-1 text-gray-400 dark:text-gray-500 line-through text-sm">
+          {task.title}
+        </span>
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          aria-label="Expand"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -53,6 +83,17 @@ export function TaskCard({
             >
               {task.title}
             </h3>
+            {task.completed && (
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
+                aria-label="Collapse"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Badges */}
