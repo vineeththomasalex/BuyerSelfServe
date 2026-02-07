@@ -1,9 +1,32 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useTransaction } from '../hooks/useTransaction';
 import { Button, Card, CardBody } from './common';
+import { importData } from '../utils/exportImport';
 
 export function WelcomeScreen() {
   const { createTransaction } = useTransaction();
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImportError(null);
+
+    try {
+      await importData(file);
+      window.location.reload();
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'Import failed');
+    }
+
+    event.target.value = '';
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -72,6 +95,25 @@ export function WelcomeScreen() {
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
               Your data is stored locally in your browser and syncs with your Chrome profile.
             </p>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              onClick={handleImportClick}
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline"
+            >
+              Import existing backup
+            </button>
+            {importError && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2">{importError}</p>
+            )}
           </div>
         </CardBody>
       </Card>
